@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard - ServiceEase</title>
+  <link rel="stylesheet" href="dashborad.css" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        <img src="https://via.placeholder.com/80" alt="User Image">
+        <h3></h3>
+        <p></p>
+      </div>
+      <nav class="menu">
+        <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-concierge-bell"></i> My Services</a>
+        <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="#"><i class="fas fa-cog"></i> Settings</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header with search -->
+      <header class="main-header">
+        <h1>Welcome back</h1>
+        <div class="search-box">
+          <input type="text" placeholder="Search services...">
+          <i class="fas fa-search"></i>
+        </div>
+      </header>
+
+      <!-- Services Section -->
+      <section class="services-section">
+        <h2>Your Recent Services</h2>
+        <div class="services-grid">
+          <div class="service-card">
+            <i class="fas fa-wrench"></i>
+            <h3>Plumber</h3>
+            <p>Pipe installation completed</p>
+          </div>
+          <div class="service-card">
+            <i class="fas fa-hammer"></i>
+            <h3>Carpenter</h3>
+            <p>Table repair completed</p>
+          </div>
+          <div class="service-card">
+            <i class="fas fa-bolt"></i>
+            <h3>Electrician</h3>
+            <p>Wiring fixed</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity Summary -->
+      <section class="activity-section">
+        <h2>Activity Summary</h2>
+        <ul class="activity-log">
+          <li>Plumber service completed on April 10</li>
+          <li>Electrician scheduled for April 20</li>
+          <li>Carpenter requested for April 25</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+
+      if (!user || !token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      fetch(`http://localhost:3000/api/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.querySelector('.profile h3').textContent = data.user.name;
+          document.querySelector('.profile p').textContent = data.user.email;
+        } else {
+          console.error(data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching user data:", err);
+        localStorage.clear();
+        window.location.href = 'index.html';
+      });
+
+      // Logout handler
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          localStorage.clear();
+          window.location.href = 'index.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

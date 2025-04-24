@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* Same CSS as before (collapsed sidebar styles)... */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: #f4f6f8;
+      transition: all 0.3s;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      transition: width 0.3s;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+      padding: 20px 10px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 40px;
+      font-size: 22px;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar.collapsed h2 {
+      opacity: 0;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px;
+      display: block;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+    }
+
+    .sidebar a:hover {
+      background-color: #34495e;
+    }
+
+    .sidebar .icon {
+      display: inline-block;
+      width: 20px;
+    }
+
+    .sidebar.collapsed a span {
+      display: none;
+    }
+
+    .sidebar.collapsed .icon {
+      text-align: center;
+      width: 100%;
+    }
+
+    .main {
+      flex: 1;
+      padding: 30px;
+      transition: all 0.3s;
+    }
+
+    .header {
+      background-color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-info {
+      font-size: 18px;
+    }
+
+    .content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .logout-btn {
+      background-color: #e74c3c;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .toggle-btn {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      font-size: 20px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <h2>Admin</h2>
+    <a href="#"><span class="icon">🏠</span> <span>Dashboard</span></a>
+    <a href="#"><span class="icon">👥</span> <span>User Management</span></a>
+    <a href="#"><span class="icon">📊</span> <span>Reports</span></a>
+    <a href="#"><span class="icon">⚙️</span> <span>Settings</span></a>
+    <a href="#"><span class="icon">📁</span> <span>Logs</span></a>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div class="admin-info">
+        <strong id="adminName">Loading...</strong> |
+        <span id="adminEmail">Fetching...</span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="content">
+      <h3>Welcome, <span id="adminWelcome">Admin</span> 👋</h3>
+      <p>This is your admin dashboard. Use the navigation to manage the system.</p>
+      
+      <h4>Manage Services</h4>
+      <div id="serviceList"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+
+      if (!token || !user || user.role !== 'admin') {
+        alert("Unauthorized access");
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Fetch admin data and display it
+      fetch(`http://localhost:3000/api/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById("adminName").textContent = data.user.name;
+          document.getElementById("adminEmail").textContent = data.user.email;
+          document.getElementById("adminWelcome").textContent = data.user.name;
+        }
+      })
+      .catch(err => {
+        console.error("Error loading admin data:", err);
+        window.location.href = 'index.html';
+      });
+
+      // Fetch and display the list of services
+      fetchServices();
+    });
+
+    function fetchServices() {
+      const token = localStorage.getItem('token');
+
+      fetch('http://localhost:3000/api/services', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.services && data.services.length > 0) {
+          displayServices(data.services);
+        } else {
+          document.getElementById('serviceList').innerHTML = '<p>No services available.</p>';
+        }
+      })
+      .catch(err => console.error("Error fetching services:", err));
+    }
+
+    function displayServices(services) {
+      const serviceListDiv = document.getElementById('serviceList');
+      serviceListDiv.innerHTML = ''; // Clear previous list
+
+      services.forEach(service => {
+        const serviceDiv = document.createElement('div');
+        serviceDiv.classList.add('service-item');
+        serviceDiv.innerHTML = `
+          <h5>${service.name}</h5>
+          <p>${service.description}</p>
+          <button onclick="editService(${service.id})">Edit</button>
+          <button onclick="deleteService(${service.id})">Delete</button>
+        `;
+        serviceListDiv.appendChild(serviceDiv);
+      });
+    }
+
+    function editService(serviceId) {
+      // Redirect to an edit page or show an edit form in a modal
+      alert(`Editing service with ID: ${serviceId}`);
+      // You can implement the edit logic here, such as populating a form with the service details
+    }
+
+    function deleteService(serviceId) {
+      const token = localStorage.getItem('token');
+
+      fetch(`http://localhost:3000/api/services/${serviceId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert('Service deleted successfully!');
+        fetchServices(); // Refresh the service list
+      })
+      .catch(err => console.error("Error deleting service:", err));
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+  </script>
+</body>
+</html>
