@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiceEase - Service Provider Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: linear-gradient(to bottom right, #0f172a, #1e3a8a);
+      color: #fff;
+      height: 100vh;
+      padding: 20px 0;
+      position: fixed;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      color: #facc15;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 15px 30px;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: background 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #2563eb;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 30px;
+      width: calc(100% - 250px);
+      background-image: url('https://www.transparenttextures.com/patterns/diamond-upholstery.png');
+    }
+
+    .card {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: scale(1.01);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h3 {
+      margin-bottom: 15px;
+      color: #1e293b;
+      font-size: 22px;
+    }
+
+    .info-item {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #334155;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #14b8a6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #0d9488;
+      transform: translateY(-1px);
+    }
+
+    .provider-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .provider-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .profile-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      border: 3px solid #3b82f6;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ServiceEase</h2>
+    <a class="active">Dashboard</a>
+    <a onclick="showEditProfile()">Edit Profile</a>
+    <a onclick="showChangePassword()">Change Password</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h3>Welcome, Service Provider!</h3>
+      <p class="info-item">Click the options in the sidebar to manage your profile.</p>
+    </div>
+    <div id="contentArea" class="card">
+      <h3>All Service Providers</h3>
+      <div class="provider-list">
+        <div class="provider-card">
+          <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="John" class="profile-image">
+          <h4>John Doe</h4>
+          <div class="info-item">Contact: +91-9876543210</div>
+          <div class="info-item">Service Type: Electrician</div>
+          <div class="info-item">Rating: ⭐ 4.5</div>
+          <div class="info-item">Pricing: ₹300/hour</div>
+        </div>
+        <div class="provider-card">
+          <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Alice" class="profile-image">
+          <h4>Alice Smith</h4>
+          <div class="info-item">Contact: +91-9988776655</div>
+          <div class="info-item">Service Type: Plumber</div>
+          <div class="info-item">Rating: ⭐ 4.7</div>
+          <div class="info-item">Pricing: ₹350/hour</div>
+        </div>
+        <div class="provider-card">
+          <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Bob" class="profile-image">
+          <h4>Bob Johnson</h4>
+          <div class="info-item">Contact: +91-9123456789</div>
+          <div class="info-item">Service Type: Carpenter</div>
+          <div class="info-item">Rating: ⭐ 4.6</div>
+          <div class="info-item">Pricing: ₹400/hour</div>
+        </div>
+        <div class="provider-card">
+          <img src="https://randomuser.me/api/portraits/men/4.jpg" alt="Sam" class="profile-image">
+          <h4>Sam Wilson</h4>
+          <div class="info-item">Contact: +91-9999999999</div>
+          <div class="info-item">Service Type: Painter</div>
+          <div class="info-item">Rating: ⭐ 4.4</div>
+          <div class="info-item">Pricing: ₹280/hour</div>
+        </div>
+        <div class="provider-card">
+          <img src="https://randomuser.me/api/portraits/women/5.jpg" alt="Emma" class="profile-image">
+          <h4>Emma Watson</h4>
+          <div class="info-item">Contact: +91-1234567890</div>
+          <div class="info-item">Service Type: Cleaner</div>
+          <div class="info-item">Rating: ⭐ 4.8</div>
+          <div class="info-item">Pricing: ₹250/hour</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showEditProfile() {
+      document.getElementById('contentArea').innerHTML = `
+        <h3>Edit Profile</h3>
+        <label>Name: <input type="text" placeholder="Enter your name" /></label><br><br>
+        <label>Contact Number: <input type="text" placeholder="Enter contact number" /></label><br><br>
+        <label>Service Type: <input type="text" placeholder="Enter service type" /></label><br><br>
+        <button class="btn">Save Changes</button>
+      `;
+    }
+
+    function showChangePassword() {
+      document.getElementById('contentArea').innerHTML = `
+        <h3>Change Password</h3>
+        <label>Old Password: <input type="password" /></label><br><br>
+        <label>New Password: <input type="password" /></label><br><br>
+        <label>Confirm Password: <input type="password" /></label><br><br>
+        <button class="btn">Update Password</button>
+      `;
+    }
+
+    function logout() {
+      alert("You have been logged out successfully.");
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+
+</html>
