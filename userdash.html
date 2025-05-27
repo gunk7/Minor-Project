@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard - ServiceEase</title>
+  <link rel="stylesheet" href="dashborad.css" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        <img src="https://via.placeholder.com/80" alt="User Image">
+        <h3></h3>
+        <p></p>
+      </div>
+      <nav class="menu">
+        <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-concierge-bell"></i> My Services</a>
+        <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="#"><i class="fas fa-cog"></i> Settings</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header with search -->
+      <header class="main-header">
+        <h1>Welcome back</h1>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search services...">
+          <i class="fas fa-search"></i>
+        </div>
+      </header>
+
+    <!-- Booking List-->
+    <section class="services-section">
+      <h2>Available Services</h2>
+      <div id="service-list" class="services-grid"></div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+      <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px;">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+        <h2>Book Service</h2>
+        <form id="bookingForm">
+          <input type="hidden" id="serviceId" name="serviceId">
+          <div style="margin-bottom: 15px;">
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label for="timeSlot">Time Slot:</label>
+            <select id="timeSlot" name="timeSlot" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+              <option value="">Select Time Slot</option>
+              <option value="morning">Morning (9 AM - 12 PM)</option>
+              <option value="afternoon">Afternoon (1 PM - 4 PM)</option>
+              <option value="evening">Evening (5 PM - 8 PM)</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;">
+          </div>
+          <div style="margin-bottom: 15px;">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" rows="3" required style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+          </div>
+          <button type="submit" style="background-color: #4CAF50; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer;">Confirm Booking</button>
+        </form>
+      </div>
+    </div>
+
+      <!-- Activity Summary -->
+      <section class="activity-section">
+        <h2>Activity Summary</h2>
+        <ul class="activity-log">
+          <li>None</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      const token = localStorage.getItem('token');
+
+      if (!user || !token) {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // Load services
+      loadServices();
+      
+      // Setup booking modal
+      setupBookingModal();
+
+      fetch(`http://localhost:3000/api/user/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.querySelector('.profile h3').textContent = data.user.name;
+          document.querySelector('.profile p').textContent = data.user.email;
+        } else {
+          console.error(data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching user data:", err);
+        localStorage.clear();
+        window.location.href = 'index.html';
+      });
+
+      // Logout handler
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          localStorage.clear();
+          window.location.href = 'index.html';
+        });
+      }
+    });
+    
+    // Global variable to store all services
+    let allServices = [];
+    
+    // Load available services
+    async function loadServices() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3000/api/services', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        allServices = await response.json();
+        displayServices(allServices);
+        
+        // Setup search functionality
+        setupSearch();
+      } catch (error) {
+        console.error('Error loading services:', error);
+        document.getElementById('service-list').innerHTML = 
+          '<p>Error loading services. Please try again later.</p>';
+      }
+    }
+    
+    // Display services based on filter
+    function displayServices(services) {
+      const serviceList = document.getElementById('service-list');
+      
+      if (serviceList) {
+        serviceList.innerHTML = '';
+        
+        if (services.length === 0) {
+          serviceList.innerHTML = '<p>No services available at the moment.</p>';
+          return;
+        }
+        
+        services.forEach(service => {
+          const serviceCard = document.createElement('div');
+          serviceCard.className = 'service-card';
+          serviceCard.innerHTML = `
+            <h3>${service.name}</h3>
+            <p>${service.description || 'No description available'}</p>
+            <p><strong>Category:</strong> ${service.category}</p>
+            <p><strong>Price:</strong> $${service.price}</p>
+            <button class="book-btn" data-id="${service.id}">Book Now</button>
+          `;
+          serviceList.appendChild(serviceCard);
+        });
+        
+        // Add event listeners to book buttons
+        document.querySelectorAll('.book-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const serviceId = e.target.getAttribute('data-id');
+            openBookingModal(serviceId);
+          });
+        });
+      }
+    }
+    
+    // Setup search functionality
+    function setupSearch() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const searchTerm = e.target.value.toLowerCase();
+          
+          if (!searchTerm) {
+            // If search is empty, show all services
+            displayServices(allServices);
+            return;
+          }
+          
+          // Filter services based on search term
+          const filteredServices = allServices.filter(service => 
+            service.name.toLowerCase().includes(searchTerm) || 
+            (service.description && service.description.toLowerCase().includes(searchTerm)) ||
+            service.category.toLowerCase().includes(searchTerm)
+          );
+          
+          displayServices(filteredServices);
+        });
+      }
+    }
+    
+    // Setup booking modal
+    function setupBookingModal() {
+      const modal = document.getElementById('bookingModal');
+      const closeBtn = modal.querySelector('.close');
+      const form = document.getElementById('bookingForm');
+      
+      // Close modal when clicking X
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+      
+      // Close modal when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+      
+      // Handle form submission
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const serviceId = document.getElementById('serviceId').value;
+        const date = document.getElementById('date').value;
+        const timeSlot = document.getElementById('timeSlot').value;
+        const address = document.getElementById('address').value;
+        const description = document.getElementById('description').value;
+        
+        // Validate all fields
+        if (!serviceId || !date || !timeSlot || !address || !description) {
+          alert('Please fill in all required fields');
+          return;
+        }
+        
+        try {
+          const token = localStorage.getItem('token');
+          console.log("Sending booking request with data:", {
+            service_id: serviceId,
+            date: date,
+            timeSlot: timeSlot,
+            address: address,
+            description: description
+          });
+          
+          const response = await fetch('http://localhost:3000/api/book-service', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              service_id: serviceId,
+              date: date,
+              timeSlot: timeSlot,
+              address: address,
+              description: description
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            alert('Service booked successfully!');
+            modal.style.display = 'none';
+            form.reset();
+          } else {
+            alert(`Booking failed: ${result.message}`);
+          }
+        } catch (error) {
+          console.error('Error booking service:', error);
+          alert('An error occurred while booking the service. Please try again.');
+        }
+      });
+    }
+    
+    // Open booking modal with service ID
+    function openBookingModal(serviceId) {
+      const modal = document.getElementById('bookingModal');
+      if (!modal) {
+        console.error("Booking modal not found!");
+        alert("Booking system is currently unavailable. Please try again later.");
+        return;
+      }
+      
+      const serviceIdField = document.getElementById('serviceId');
+      if (!serviceIdField) {
+        console.error("Service ID field not found in booking form!");
+        alert("Booking system is currently unavailable. Please try again later.");
+        return;
+      }
+      
+      serviceIdField.value = serviceId;
+      modal.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>ServiceEase - Provider Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Reuse your modern layout and card styles here */
+    body {
+      background: #f0f4f8;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      margin: 0;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #0f172a;
+      color: #fff;
+      padding: 20px;
+      height: 100vh;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #facc15;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 15px 30px;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: background 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #2563eb;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      background: #fff;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      background-color: #14b8a6;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #0d9488;
+    }
+
+    .provider-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .provider-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      text-align: left;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ServiceEase</h2>
+    <a class="active">Dashboard</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h3>Welcome, Provider!</h3>
+      <form id="providerServiceForm">
+        <input type="text" name="name" placeholder="Service Name" required />
+        <input type="text" name="category" placeholder="Category" required />
+        <textarea name="description" placeholder="Service Description"></textarea>
+        <input type="number" name="price" placeholder="Price" required />
+        <button type="submit" class="btn">Submit Service</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>All Your Services</h3>
+      <div id="serviceList" class="provider-list">Loading services...</div>
+    </div>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+
+    if (!user || !token || user.role !== 'provider') {
+      alert("Unauthorized access.");
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById("providerServiceForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const price = parseFloat(form.price.value);
+        if (isNaN(price)) {
+          alert("Please enter a valid price.");
+          return;
+        }
+      
+      // Check if all required fields are filled
+      if (!form.name.value || !form.category.value || !form.price.value) {
+        alert("Please fill in all required fields: Name, Category, and Price");
+        return;
+      }
+      
+      const payload = {
+        name: form.name.value,
+        description: form.description.value || "", // Ensure description is never null
+        category: form.category.value,
+        price: parseFloat(form.price.value)
+        // Remove provider_id as it's extracted from token on server side
+      };
+
+
+      try {
+        const response = await fetch("http://localhost:3000/api/services", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+
+        });
+        
+
+        const result = await response.json();
+        if (result.success) {
+          alert("✅ Service submitted successfully!");
+          form.reset();
+          loadServices(); // Refresh the list
+        } else {
+          alert("❌ Failed: " + result.message);
+        }
+      } catch (err) {
+        console.error("❌ Error submitting service:", err);
+        alert("❌ Submission failed.");
+      }
+    });
+
+    async function loadServices() {
+      try {
+        const response = await fetch("http://localhost:3000/api/services", {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        const myServices = data.filter(s => s.provider_id === user.id);
+
+        const list = document.getElementById("serviceList");
+        list.innerHTML = '';
+        myServices.forEach(service => {
+          list.innerHTML += `
+            <div class="provider-card">
+              <h4>${service.name}</h4>
+              <p><strong>Category:</strong> ${service.category}</p>
+              <p><strong>Description:</strong> ${service.description}</p>
+              <p><strong>Price:</strong> ₹${service.price}</p>
+              <p><strong>Rating:</strong> ⭐ ${service.ratings}</p>
+            </div>
+          `;
+        });
+
+        if (myServices.length === 0) {
+          list.innerHTML = '<p>No services submitted yet.</p>';
+        }
+      } catch (err) {
+        console.error("❌ Error loading services:", err);
+        document.getElementById("serviceList").innerText = 'Error loading services.';
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    window.onload = loadServices;
+  </script>
+</body>
+
+</html>
