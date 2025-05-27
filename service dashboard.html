@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ServiceEase - Service Provider Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <style>
     * {
@@ -147,7 +147,7 @@
       <h3>All Service Providers</h3>
       <div class="provider-list">
         <div class="provider-card">
-          <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="John" class="profile-image">
+          <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="John" class="profile-image" />
           <h4>John Doe</h4>
           <div class="info-item">Contact: +91-9876543210</div>
           <div class="info-item">Service Type: Electrician</div>
@@ -155,7 +155,7 @@
           <div class="info-item">Pricing: ₹300/hour</div>
         </div>
         <div class="provider-card">
-          <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Alice" class="profile-image">
+          <img src="https://randomuser.me/api/portraits/women/2.jpg" alt="Alice" class="profile-image" />
           <h4>Alice Smith</h4>
           <div class="info-item">Contact: +91-9988776655</div>
           <div class="info-item">Service Type: Plumber</div>
@@ -163,7 +163,7 @@
           <div class="info-item">Pricing: ₹350/hour</div>
         </div>
         <div class="provider-card">
-          <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Bob" class="profile-image">
+          <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Bob" class="profile-image" />
           <h4>Bob Johnson</h4>
           <div class="info-item">Contact: +91-9123456789</div>
           <div class="info-item">Service Type: Carpenter</div>
@@ -171,7 +171,7 @@
           <div class="info-item">Pricing: ₹400/hour</div>
         </div>
         <div class="provider-card">
-          <img src="https://randomuser.me/api/portraits/men/4.jpg" alt="Sam" class="profile-image">
+          <img src="https://randomuser.me/api/portraits/men/4.jpg" alt="Sam" class="profile-image" />
           <h4>Sam Wilson</h4>
           <div class="info-item">Contact: +91-9999999999</div>
           <div class="info-item">Service Type: Painter</div>
@@ -179,7 +179,7 @@
           <div class="info-item">Pricing: ₹280/hour</div>
         </div>
         <div class="provider-card">
-          <img src="https://randomuser.me/api/portraits/women/5.jpg" alt="Emma" class="profile-image">
+          <img src="https://randomuser.me/api/portraits/women/5.jpg" alt="Emma" class="profile-image" />
           <h4>Emma Watson</h4>
           <div class="info-item">Contact: +91-1234567890</div>
           <div class="info-item">Service Type: Cleaner</div>
@@ -217,6 +217,29 @@
       window.location.href = 'index.html';
     }
   </script>
-</body>
 
-</html>
+  <!-- Socket.IO client -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    // Connect to backend socket.io server
+    const socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      console.log('Connected to socket.io server');
+    });
+
+    // Listen for new booking notifications
+    socket.on('new-booking', (booking) => {
+      alert('New booking received!');
+      console.log('New booking details:', booking);
+
+      const contentArea = document.getElementById('contentArea');
+      const bookingDiv = document.createElement('div');
+      bookingDiv.style.background = '#e0f7fa';
+      bookingDiv.style.padding = '10px';
+      bookingDiv.style.marginTop = '10px';
+      bookingDiv.style.borderRadius = '8px';
+      bookingDiv.innerHTML = `
+        <h4>New Booking</h4>
+        <p><strong>User ID:</strong> ${booking.user_id}</p>
+        <p><strong>Service ID
