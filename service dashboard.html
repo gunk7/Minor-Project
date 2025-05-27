@@ -229,17 +229,29 @@
     });
 
     // Listen for new booking notifications
-    socket.on('new-booking', (booking) => {
-      alert('New booking received!');
-      console.log('New booking details:', booking);
+    socket.on('newBooking', (booking) => {
+  alert('New booking received!');
+  console.log('New booking details:', booking);
 
-      const contentArea = document.getElementById('contentArea');
-      const bookingDiv = document.createElement('div');
-      bookingDiv.style.background = '#e0f7fa';
-      bookingDiv.style.padding = '10px';
-      bookingDiv.style.marginTop = '10px';
-      bookingDiv.style.borderRadius = '8px';
-      bookingDiv.innerHTML = `
-        <h4>New Booking</h4>
-        <p><strong>User ID:</strong> ${booking.user_id}</p>
-        <p><strong>Service ID
+  const contentArea = document.getElementById('contentArea');
+  const bookingDiv = document.createElement('div');
+  bookingDiv.style.background = '#e0f7fa';
+  bookingDiv.style.padding = '10px';
+  bookingDiv.style.marginTop = '10px';
+  bookingDiv.style.borderRadius = '8px';
+
+  bookingDiv.innerHTML = `
+    <h4>New Booking</h4>
+    <p><strong>User ID:</strong> ${booking.user_id}</p>
+    <p><strong>Service ID:</strong> ${booking.service_id}</p>
+    <p><strong>Provider ID:</strong> ${booking.provider_id}</p>
+    <p><strong>Date:</strong> ${booking.date}</p>
+    <p><strong>Time Slot:</strong> ${booking.time_slot}</p>
+    <p><strong>Address:</strong> ${booking.address}</p>
+    <p><strong>Description:</strong> ${booking.description}</p>
+    <p><strong>Status:</strong> ${booking.status}</p>
+  `;
+
+  contentArea.appendChild(bookingDiv);
+});
+
