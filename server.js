@@ -176,6 +176,7 @@ app.post('/api/book-service', authenticateToken, async (req, res) => {
     }
 });
 
+
 app.get('/api/provider/bookings', authenticateToken, authorizeRole(['provider']), async (req, res) => {
     try {
         const result = await pool.query(`SELECT * FROM bookings WHERE provider_id = $1`, [req.user.id]);
